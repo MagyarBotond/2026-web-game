@@ -1,19 +1,15 @@
+
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>John Gun's Goblindeez ATTACK</title>
-
 <link rel="stylesheet" href="css/jgg.css">
 </head>
-
 <body>
-
 <div id="layout">
-
     <div id="game">
-
         <!-- START MENU -->
         <div id="startMenu">
             <h1>JOHN GUN'S<br>GOBLINDEEZ ATTACK</h1>
@@ -40,11 +36,9 @@
             <p id="finalscore"></p>
             <button onclick="location.reload()">RESTART</button>
         </div>
-
     </div>
 
     <div id="sidebar">
-
         <h1>John Gun's Goblindeez ATTACK</h1>
 
         <div class="stat">
@@ -58,26 +52,20 @@
         </div>
 
         <div id="audioControls">
-
             <button id="pauseButton" onclick="togglePause()">
                 <img src="other/pause_button.png" alt="Pause">
                 <label>PAUSE</label>
             </button>
-        
+
             <button id="musicButton" onclick="toggleMusic()">
-                <img id="musicButtonImage"
-                     src="other/music_on.png"
-                     alt="Music on">
-                     <label>MUSIC ON/OFF</label>
+                <img id="musicButtonImage" src="other/music_on.png" alt="Music on">
+                <label>MUSIC ON/OFF</label>
             </button>
-        
+
             <button id="sfxButton" onclick="toggleSfx()">
-                <img id="sfxButtonImage"
-                     src="other/sfx_on.png"
-                     alt="SFX on">
-                     <label>SFX ON/OFF</label>
+                <img id="sfxButtonImage" src="other/sfx_on.png" alt="SFX on">
+                <label>SFX ON/OFF</label>
             </button>
-        
         </div>
 
         <div id="controls">
@@ -85,19 +73,14 @@
             W / ↑ = Move up<br>
             S / ↓ = Move down<br>
             SPACE = Shoot
-
             <br><br>
-
             <b>REWARD</b><br>
             +20 Health every 50 points
         </div>
-
     </div>
-
 </div>
 
 <script>
-
 // =================================
 // ELEMENTS
 // =================================
@@ -136,7 +119,7 @@ const MinionspawnSound = new Audio("sounds/imp_spawn.mp3");
 const skellyspawnSound = new Audio("sounds/skelly_spawn.mp3");
 skellyspawnSound.volume = 0.45;
 
-// player sounds
+// Player sounds
 const shootingSounds = [
     new Audio("sounds/johngun_shoot1.mp3"),
     new Audio("sounds/johngun_shoot2.mp3")
@@ -235,7 +218,6 @@ const minionSize = 100;
 const minionScore = 2;
 const minionDeathSound = new Audio("sounds/imp_death.mp3");
 
-
 // Wizard
 const wizardSize = 180;
 const wizardScore = 20;
@@ -243,8 +225,12 @@ const wizardDeathSound = new Audio("sounds/wizard_death.mp3");
 minionDeathSound.volume = 0.;
 
 // =================================
-// BACKGROUND MUSIC
+// SEPARATE START / BACKGROUND / PAUSE MUSIC
 // =================================
+
+// Replace these paths with the names of your own music files if needed.
+const startMusic = new Audio("music/start_music.mp3");
+const pauseMusic = new Audio("music/pause_music.mp3");
 
 const musicTracks = [
     "music/main_music1.mp3",
@@ -253,27 +239,53 @@ const musicTracks = [
 
 const backgroundMusic = new Audio(musicTracks[0]);
 
-backgroundMusic.preload = "auto";
-backgroundMusic.volume = 0.35;
+[startMusic, pauseMusic, backgroundMusic].forEach(track => {
+    track.preload = "auto";
+    track.volume = 0.35;
+});
+
+startMusic.loop = true;
+pauseMusic.loop = true;
 
 let currentMusicTrack = 0;
 let musicEnabled = true;
 
-// SWITCH SONG WHEN ONE ENDS
+function stopAllMusic() {
+    [startMusic, pauseMusic, backgroundMusic].forEach(track => {
+        track.pause();
+        track.currentTime = 0;
+    });
+}
 
+function playSceneMusic(scene) {
+    if (!musicEnabled) {
+        stopAllMusic();
+        return;
+    }
+
+    stopAllMusic();
+
+    if (scene === "start") {
+        startMusic.play().catch(() => {});
+    } else if (scene === "pause") {
+        pauseMusic.play().catch(() => {});
+    } else if (scene === "game") {
+        backgroundMusic.play().catch(() => {});
+    }
+}
+
+// Background tracks switch when one ends
 backgroundMusic.addEventListener("ended", () => {
+    if (!musicEnabled || !gameRunning || gamePaused) return;
 
-    if (!musicEnabled || !gameStarted) return;
-
-    currentMusicTrack =
-        (currentMusicTrack + 1) % musicTracks.length;
-
+    currentMusicTrack = (currentMusicTrack + 1) % musicTracks.length;
     backgroundMusic.src = musicTracks[currentMusicTrack];
-
     backgroundMusic.play().catch(() => {});
-
 });
 
+// Try to start menu music.
+// Browsers may block autoplay until user interaction.
+playSceneMusic("start");
 
 // =================================
 // SOUND EFFECTS ON / OFF
@@ -303,18 +315,13 @@ const originalSfxVolumes = new Map(
     sfxSounds.map(sound => [sound, sound.volume])
 );
 
-
 // =================================
 // UPDATE BUTTON IMAGES
 // =================================
 
 function updateAudioButtonImages() {
-
-    const musicImage =
-        document.getElementById("musicButtonImage");
-
-    const sfxImage =
-        document.getElementById("sfxButtonImage");
+    const musicImage = document.getElementById("musicButtonImage");
+    const sfxImage = document.getElementById("sfxButtonImage");
 
     musicImage.src = musicEnabled
         ? "other/music_on.png"
@@ -323,51 +330,44 @@ function updateAudioButtonImages() {
     sfxImage.src = sfxEnabled
         ? "other/sfx_on.png"
         : "other/sfx_off.png";
-
 }
-
 
 // =================================
 // TOGGLE MUSIC
 // =================================
 
 function toggleMusic() {
-
     musicEnabled = !musicEnabled;
 
     if (musicEnabled) {
-
-        backgroundMusic.play().catch(() => {});
-
+        if (!gameStarted) {
+            playSceneMusic("start");
+        } else if (gamePaused) {
+            playSceneMusic("pause");
+        } else if (gameRunning) {
+            playSceneMusic("game");
+        }
     } else {
-
-        backgroundMusic.pause();
-
+        stopAllMusic();
     }
 
     updateAudioButtonImages();
-
 }
-
 
 // =================================
 // TOGGLE SOUND EFFECTS
 // =================================
 
 function toggleSfx() {
-
     sfxEnabled = !sfxEnabled;
 
     sfxSounds.forEach(sound => {
-
         sound.volume = sfxEnabled
             ? originalSfxVolumes.get(sound)
             : 0;
-
     });
 
     updateAudioButtonImages();
-
 }
 
 // =================================
@@ -375,27 +375,21 @@ function toggleSfx() {
 // =================================
 
 function startGame() {
+    if (gameStarted) return;
 
-if (gameStarted) return;
+    gameStarted = true;
+    gameRunning = true;
 
-gameStarted = true;
-gameRunning = true;
+    document.getElementById("startMenu").style.display = "none";
+    document.getElementById("audioControls").style.display = "flex";
+    document.getElementById("pauseButton").style.display = "block";
 
-document.getElementById("startMenu").style.display = "none";
+    updateAudioButtonImages();
 
-document.getElementById("audioControls").style.display = "flex";
+    // Switch from start-menu music to gameplay music
+    playSceneMusic("game");
 
-document.getElementById("pauseButton").style.display = "block";
-
-updateAudioButtonImages();
-
-// START BACKGROUND MUSIC
-if (musicEnabled) {
-    backgroundMusic.play().catch(() => {});
-}
-
-update();
-
+    update();
 }
 
 function togglePause() {
@@ -412,6 +406,9 @@ function togglePause() {
 
         stopShooting();
 
+        // Switch to pause music
+        playSceneMusic("pause");
+
         // Stop the animation loop while paused
         if (animationFrame) {
             cancelAnimationFrame(animationFrame);
@@ -420,6 +417,9 @@ function togglePause() {
     } else {
         pauseMenu.style.display = "none";
         pauseButton.style.display = "block";
+
+        // Resume gameplay music
+        playSceneMusic("game");
 
         update();
     }
@@ -844,27 +844,25 @@ function checkHealthReward() {
 // =================================
 
 function damagePlayer() {
+    health -= 20;
 
-health -= 20;
+    if (health < 0) {
+        health = 0;
+    }
 
-if (health < 0) {
-    health = 0;
-    
-}
+    updateHUD();
 
-updateHUD();
+    if (health <= 0) {
+        endGame();
+        return true;
+    }
 
-if (health <= 0) {
-    endGame();
-    return true;
+    if (!health <= 0) {
+        playerhurtSound.currentTime = 0;
+        playerhurtSound.play().catch(() => {});
+    }
 
-}
-if(!health <=0)
-{
-    playerhurtSound.currentTime = 0;
-    playerhurtSound.play().catch(() => {});
-}
-return false;
+    return false;
 }
 
 // =================================
@@ -980,8 +978,13 @@ function update() {
 function endGame() {
     gameRunning = false;
     gamePaused = false;
+
+    // Stop every music track at game over
+    stopAllMusic();
+
     playerdeathSound.currentTime = 0;
     playerdeathSound.play().catch(() => {});
+
     enemies.forEach(clearEnemyTimers);
     stopShooting();
 
@@ -1011,7 +1014,6 @@ setInterval(() => {
 }, 1500);
 
 // Game starts from the Start menu
-
 </script>
 </body>
 </html>
