@@ -156,16 +156,6 @@ body {
     cursor: pointer;
 }
 
-
-
-/* GAME MENUS */
-
-#game {
-    position: relative;
-}
-
-/* START MENU */
-
 #startMenu {
     position: absolute;
     inset: 0;
@@ -193,8 +183,6 @@ body {
     cursor: pointer;
 }
 
-/* PAUSE IMAGE BUTTON */
-
 #pauseButton {
     display: none;
 
@@ -215,8 +203,6 @@ body {
     height: 100%;
     object-fit: contain;
 }
-
-/* PAUSE MENU */
 
 #pauseMenu {
     display: none;
