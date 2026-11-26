@@ -733,7 +733,7 @@ function spawnEnemy() {
     if (!gameRunning || gamePaused) return;
 
     const enemyLane = Math.floor(Math.random() * laneCount);
-    const enemyX = game.clientWidth;
+    const enemyX = game.clientWidth-90;
     const random = Math.random();
 
     // SUMMONER
