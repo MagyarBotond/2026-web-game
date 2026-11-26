@@ -100,7 +100,6 @@ body {
     z-index: 2;
 }
 
-/* IMAGE BULLETS */
 .bullet {
     position: absolute;
     width: 50px;
@@ -110,7 +109,6 @@ body {
     pointer-events: none;
 }
 
-/* ENEMY HIT EFFECT */
 .hit-effect {
     position: absolute;
     width: 130px;
