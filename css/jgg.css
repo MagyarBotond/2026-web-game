@@ -133,25 +133,30 @@ body {
     display: none;
     position: absolute;
     inset: 0;
-    background: #000e;
-    z-index: 30;
-    text-align: center;
-    padding-top: 150px;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
 }
 
 #gameover h1 {
-    font-size: 65px;
-}
-
-#gameover p {
-    font-size: 35px;
+    font-size: 50px;
+    color: red;
 }
 
 #gameover button {
-    padding: 18px 35px;
-    font-size: 28px;
+    padding: 12px 35px;
+    margin: 10px;
+
+    font-size: 22px;
+    font-weight: bold;
+
     cursor: pointer;
 }
+
+
 
 /* GAME MENUS */
 
